@@ -1,4 +1,10 @@
 #!/bin/sh
 
+sudo apt-get -y build-dep
+wget https://cache.ruby-lang.org/pub/ruby/2.4/ruby-2.4.1.tar.gz
+tar xf ruby-2.4.1.tar.gz
+(cd ruby-2.4.1 && ./configure && make -j2 && sudo make install)
+hash -r
+
 sudo gem install -v 1.15.3 bundler
 (cd src && sudo bundle)
