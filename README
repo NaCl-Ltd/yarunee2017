@@ -11,6 +11,12 @@ TODO: description
 * Yutaka HARA <yhara AT netlab.jp>
 * Yuya.Nishida. <yuya AT netlab.jp>
 
+## Release
+
+```
+$ git archive --format=tar.gz -9 HEAD > /tmp/yarunee2017.tar.gz
+```
+
 ## Development
 
 Install.
