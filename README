@@ -1,1 +1,24 @@
 # Yarunee
+
+TODO: description
+
+## Authors
+
+* Akihiro Sada <sada AT netlab.jp>
+* Fujii Takashi <fujii AT netlab.jp>
+* Kenta Kumojima <kumojima AT netlab.jp>
+* Shugo Maeda <shugo AT netlab.jp>
+* Yutaka HARA <yhara AT netlab.jp>
+* Yuya.Nishida. <yuya AT netlab.jp>
+
+## Development
+
+Install.
+
+```
+$ (cd src && bundle)
+```
+
+Run.
+
+TODO:
