@@ -1,4 +1,4 @@
 #!/bin/sh
 
-gem install -v 1.15.3 bundler
-(cd src && bundle)
+sudo gem install -v 1.15.3 bundler
+(cd src && sudo bundle)
