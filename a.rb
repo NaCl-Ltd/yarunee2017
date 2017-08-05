@@ -13,8 +13,9 @@ end
 
 def send(json_data)
   s = json_data.to_json
-  puts "#{s.bytesize}:#{s}"
-  log sent: s
+  msg = "#{s.bytesize}:#{s}"
+  $stdout.print msg
+  log sent: msg
 end
 
 def read
@@ -53,4 +54,6 @@ when res["move"]
         state: my_state})
 when res["stop"]
   log "Game over (score: #{res["stop"]["scores"]})"
+else
+  raise "unknown msg"
 end
