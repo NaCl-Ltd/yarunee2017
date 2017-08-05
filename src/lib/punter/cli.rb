@@ -4,14 +4,16 @@ module Punter
   class Cli
     def log(str)
       @log ||= File.open("/tmp/aaa.log", "a")
+      @log.sync = true
       @log.puts str
     end
 
     def output(hash)
       hash["state"] = @state if @state
       json = hash.to_json
-      log(json)
-      print "#{json.length}:#{json}"
+      out = "#{json.length}:#{json}"
+      log(out)
+      print out
     end
 
     def input
@@ -55,7 +57,7 @@ module Punter
     def solve
       river = @state["rivers"].sample
       river["punter"] = @state["punter"]
-      output({ move: { claim: river }})
+      output({ claim: river })
     end
   end
 end
