@@ -66,7 +66,7 @@ module Punter
             @state["rivers"].delete(m["target"].to_s) if @state["rivers"][m["target"].to_s].empty?
             if m["punter"] == @state["punter"]
               %w(source target).each do |label|
-                @state["my_sites"] << m[label] unless @state["my_sites"].include?(m[label])
+                @state["my_sites"].unshift m[label] unless @state["my_sites"].include?(m[label])
               end
             end
           end
