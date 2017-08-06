@@ -7,9 +7,9 @@ $log.sync = true
 $play_log = ENV["PLAY_LOG"]
 
 MAX_LOG_LEN = 200
-def log(obj)
+def log(obj, no_cut: false)
   str = format("[%5d] %s", Process.pid, (obj.is_a?(String) ? obj : obj.inspect))
-  if str.length > MAX_LOG_LEN
+  if str.length > MAX_LOG_LEN && !no_cut
     str = str[0, MAX_LOG_LEN] + "..."
   end
   $log.puts str
@@ -93,42 +93,44 @@ def calc_dists(map_data, root_id)
   return dists
 end
 
-# rivers: [[src, dst, owner], ...]
-def next_river(rivers, mines, state)
-  tips = state["tips"]
-  free_rivers = rivers.select{|_, _, owner| owner == -1}
-
-  # 鉱脈周りの川が空いていたらとりあえず押さえる
-  src, tgt, _ = free_rivers.find{|s, t, _|
-    if mines.include?(s) && mines.include?(t)
-      true
-    elsif mines.include?(s)
-      state["tips"] << [t, 1]
-      true
-    elsif mines.include?(t)
-      state["tips"] << [s, 1]
-      true
-    else
-      false
+def next_river(edges, mines, state)
+  # 鉱脈周りの川を一本ずつ押さえる
+  mines.each do |mine_id|
+    if state["tips"].any?{|_, _, x| x == mine_id}
+      log minechecking: :skip, mine_id: mine_id, tips: state["tips"]
+      next
     end
-  }
-  state["tips"].sort_by!{|node, len| -len}
-  return src, tgt, state if src
+    edges[mine_id.to_s].each do |key, owner|
+      log minechecking: true, mine_id: mine_id, ko: [key, owner]
+      dst = key.to_i
+      if owner == -1
+        state["tips"] << [dst, 1, mine_id]
+        state["tips"].sort_by!{|node, len, mine| -len}
+        log minechecking: :new, tips: state["tips"]
+        return mine_id, dst, state
+      end
+    end
+  end
 
   # そうでない場合、枝を伸ばしたい
-  state["tips"].each.with_index do |(node, len), idx|
-    free_rivers.each do |s, t, _|
-      if s == node || t == node
-        state["tips"][idx] = [(s == node ? t : s), len+1]
-        state["tips"].sort_by!{|node, len| -len}
-        return s, t, state
+  state["tips"].each.with_index do |(node, len, mine), idx|
+    edges[node.to_s].each do |key, owner|
+      if owner == -1
+        dst = key.to_i
+        state["tips"][idx] = [dst, len+1, mine]
+        state["tips"].sort_by!{|node, len, mine| -len}
+        return node, dst, state
       end
     end
   end
 
   # 無理なら適当に
-  src, tgt, _ = free_rivers.first
-  return src, tgt, state
+  edges.each do |key1, hsh|
+    hsh.each do |key2, owner|
+      return key1.to_i, key2.to_i, state if owner == -1
+    end
+  end
+  raise
 end
 
 log "#{Time.now.to_s} #{$play_log}"
@@ -143,9 +145,9 @@ when (id = res["punter"])
 
   # 前処理
   mine_dists = {}
-  map_data["mines"].each do |mine_id|
-    mine_dists[mine_id] = calc_dists(map_data, mine_id)
-  end
+  #map_data["mines"].each do |mine_id|
+  #  mine_dists[mine_id] = calc_dists(map_data, mine_id)
+  #end
 
   my_state = {
     id: id,
@@ -173,13 +175,7 @@ when res["move"]
     map["edges"][tgt][src] = claimer_id
   end
 
-  # 川の一覧を作る
-  edge_list = map["edges"].flat_map{|src_key, hsh| hsh.map{|tgt_key, owner|
-    src, tgt = src_key.to_i, tgt_key.to_i
-    [src, tgt, owner] if src < tgt
-  }.compact}
-
-  src, tgt, new_state = next_river(edge_list, map["mines"], my_state)
+  src, tgt, new_state = next_river(map["edges"], map["mines"], my_state)
 
   send({claim: {punter: id,
                 source: src,
