@@ -65,6 +65,21 @@ def parse_map_data(map_data)
   }
 end
 
+# rivers: [[src, dst, owner], ...]
+def next_river(rivers, mines)
+  free_rivers = rivers.select{|_, _, owner| owner == -1}
+
+  # 鉱脈周りの川が空いていたらとりあえず押さえる
+  src, tgt, _ = free_rivers.find{|s, t|
+    mines.include?(s) || mines.include?(t)
+  }
+  return [src, tgt] if src
+
+  # そうでない場合、適当に選ぶ
+  src, tgt, _ = free_rivers.first
+  return [src, tgt]
+end
+
 log Time.now.to_s
 
 send({me: "yarunee"})
@@ -88,11 +103,12 @@ when res["move"]
     map["edges"][[src,tgt].min.to_s][[src,tgt].max.to_s] = claimer_id
   end
 
-  # まだ取られていない最初の川を選ぶ
+  # 川の一覧を作る
   edges = map["edges"].flat_map{|src_key, hsh| hsh.map{|tgt_key, owner|
     [src_key.to_i, tgt_key.to_i, owner]
   }}
-  src, tgt, _ = edges.find{|_, _, owner| owner == -1}
+
+  src, tgt = next_river(edges, map["mines"])
 
   send({claim: {punter: id,
                 source: src,
