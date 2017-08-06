@@ -83,10 +83,15 @@ module Punter
           break
         end
       end
-      river = {
-        source: r[0].to_i, target: r[1].sample, punter: @state["punter"]
-      }
-      output({ claim: river })
+      if r
+        river = {
+          source: r[0].to_i, target: r[1].sample, punter: @state["punter"]
+        }
+        output({ claim: river })
+      else
+        pass = { pass: { punter: @state["punter"]}}
+        output(pass)
+      end
     end
   end
 end
