@@ -46,16 +46,23 @@ module Punter
         @state["punter"] = hash["punter"]
         @state["punters"] = hash["punters"]
         @state["sites"] = hash["map"]["sites"]
-        @state["rivers"] = hash["map"]["rivers"]
+        @state["rivers"] = {}
+        hash["map"]["rivers"].each do |river|
+          @state["rivers"][river["source"].to_s] ||= []
+          @state["rivers"][river["source"].to_s] << river["target"]
+          @state["rivers"][river["target"].to_s] ||= []
+          @state["rivers"][river["target"].to_s] << river["source"]
+        end
         @state["mines"] = hash["map"]["mines"]
         output({ ready: @state["punter"] })
       when hash["move"]
         hash["move"]["moves"].each do |move|
           if move["claim"]
             m = move["claim"]
-            @state["rivers"].delete_if do |river|
-              river["source"] == m["source"] && river["target"] == m["target"]
-            end
+            @state["rivers"][m["source"].to_s].delete(m["target"])
+            @state["rivers"].delete(m["source"].to_s) if @state["rivers"][m["source"].to_s].empty?
+            @state["rivers"][m["target"].to_s].delete(m["source"])
+            @state["rivers"].delete(m["target"].to_s) if @state["rivers"][m["target"].to_s].empty?
           end
         end
         solve
@@ -63,8 +70,10 @@ module Punter
     end
 
     def solve
-      river = @state["rivers"].sample.dup
-      river["punter"] = @state["punter"]
+      r = @state["rivers"].to_a.sample
+      river = {
+        source: r[0].to_i, target: r[1].sample, punter: @state["punter"]
+      }
       output({ claim: river })
     end
   end
