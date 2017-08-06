@@ -1,0 +1,16 @@
+image: ruby:2.4.1
+
+variables:
+
+cache:
+  paths:
+    - vendor/bundle
+    - vendor/downloads
+
+build:
+  script:
+    - apt-get update
+    - mkdir -pv vendor/downloads
+    - cd reporter/
+    - bundle install -j$(nproc) --path=../vendor/bundle
+    - bundle exec ./run.rb
