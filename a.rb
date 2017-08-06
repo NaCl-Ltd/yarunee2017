@@ -71,17 +71,19 @@ def next_river(rivers, mines, state)
   free_rivers = rivers.select{|_, _, owner| owner == -1}
 
   # 鉱脈周りの川が空いていたらとりあえず押さえる
-  src, tgt = free_rivers.each do |s, t, _|
-    if mines.include?(s)  && mines.include?(t)
-      break s, t
+  src, tgt, _ = free_rivers.find{|s, t, _|
+    if mines.include?(s) && mines.include?(t)
+      true
     elsif mines.include?(s)
       state["tips"] << [t, 1]
-      break s, t
+      true
     elsif mines.include?(t)
       state["tips"] << [s, 1]
-      break s, t
+      true
+    else
+      false
     end
-  end
+  }
   state["tips"].sort_by!{|node, len| -len}
   return src, tgt, state if src
 
@@ -101,7 +103,7 @@ def next_river(rivers, mines, state)
   return src, tgt, state
 end
 
-log Time.now.to_s
+log "#{Time.now.to_s} #{$play_log}"
 
 send({me: "yarunee"})
 read
