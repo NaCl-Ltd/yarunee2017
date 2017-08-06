@@ -16,3 +16,9 @@
 
 - yhara/game_9073_tube_nora.jsons
 - メンバー：ol'robbrown, Brownian, longwalk, blob, Brownian, powder2, yarunee, powder
+
+### tube 野良対戦 8/6 18:10頃
+
+- nari/game_9072_tube.jsons
+- メンバー: 210017, kontur.ru_GA, kontur.ru_F, kontur.ru_MRVWA, kontur.ru_GA, yarunee(a.rb), yarunee(punter)
+  - punter5 - a.rb, punter6 - punter
