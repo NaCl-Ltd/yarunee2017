@@ -45,7 +45,7 @@ module Punter
       when hash["punter"]
         @state["punter"] = hash["punter"]
         @state["punters"] = hash["punters"]
-        @state["sites"] = hash["map"]["sites"]
+        @state["sites"] = hash["map"]["sites"].map { |i| i["id"] }
         @state["rivers"] = {}
         hash["map"]["rivers"].each do |river|
           @state["rivers"][river["source"].to_s] ||= []
