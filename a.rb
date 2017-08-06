@@ -44,25 +44,53 @@ end
 
 # map jsonを扱いやすい形式に変換する
 def parse_map_data(map_data)
+  nodes = map_data["sites"].map{|x| x["id"]}.sort
   edges = Hash.new{|h, k| h[k] = {}}
   mines = map_data["mines"]
 
   map_data["rivers"].each do |river|
-    s, t = river["source"], river["target"]
-    edges[[s,t].min.to_s][[s,t].max.to_s] = -1
+    s, t = river["source"].to_s, river["target"].to_s
+    edges[s][t] = -1
+    edges[t][s] = -1
   end
 
   return {
+    # ノード番号の一覧
+    # (0からの連番のように見えるが、保証されてないと思うので念のため、、)
+    "nodes" => nodes,
     # 辺の一覧
     # 二重のハッシュになっている。キーは文字列(JSONの仕様のため)
-    # キー1：両端のIDのうち小さい方
-    # キー2：両端のIDのうち大きい方
+    # キー1、キー2：両端のID
     # 値：その川の持ち主(まだ誰も取っていないときは-1)
-    # 例：{"1" => {"2" => -1}}  (1-2を繋ぐ川のみがあり、持ち主はなし)
-    edges: edges,
+    # 例：{"1" => {"2" => -1}  (1-2を繋ぐ川で、持ち主はなし)
+    "edges" => edges,
     # 鉱脈の番号の一覧(例：[1,3])
-    mines: mines
+    "mines" => mines
   }
+end
+
+# rootからの距離の一覧を作る
+# return: [距離の一覧(map_data["nodes"]に対応)] 
+def calc_dists(map_data, root_id)
+  nodes = map_data["nodes"]
+  node_idx = nodes.map.with_index{|node, i| [node, i]}.to_h
+  visited = Array.new(nodes.length)
+  edges = map_data["edges"]
+  dists = Array.new(nodes.length)
+  dists[node_idx[root_id]] = 0
+
+  q = [root_id]
+  until q.empty?
+    from = q.shift
+    visited[node_idx[from]] = true
+    edges[from].each do |to, _|
+      next if visited[node_idx[to]]
+      dists[node_idx[to]] = dists[node_idx[from]] + 1
+      q.push(to)
+    end
+  end
+
+  return dists
 end
 
 # rivers: [[src, dst, owner], ...]
@@ -111,10 +139,21 @@ res = read
 case
 when (id = res["punter"])
   File.open($play_log, "a"){|f| f.puts res.to_json} if $play_log
+  map_data = parse_map_data(res["map"])
+
+  # 前処理
+  mine_dists = {}
+  map_data["mines"].each do |mine_id|
+    mine_dists[mine_id] = calc_dists(map_data, mine_id)
+  end
+
   my_state = {
     id: id,
     n_punters: res["punters"],
-    map: parse_map_data(res["map"]),
+    map: map_data,
+    # 各mineから各点までの距離の一覧
+    # {mine_id => [各点までの距離(map["nodes"]に対応)]}
+    mine_dists: mine_dists,
     tips: [],
   }
   send({ready: id, state: my_state})
@@ -127,16 +166,20 @@ when res["move"]
   # 敵の挙動をmapに反映させる
   res["move"]["moves"].each do |move|
     next unless move["claim"]  # passの場合はスキップ
-    claimer_id, src, tgt = move["claim"].values_at("punter", "source", "target")
-    map["edges"][[src,tgt].min.to_s][[src,tgt].max.to_s] = claimer_id
+    claimer_id = move["claim"]["punter"]
+    src = move["claim"]["source"].to_s
+    tgt = move["claim"]["target"].to_s
+    map["edges"][src][tgt] = claimer_id
+    map["edges"][tgt][src] = claimer_id
   end
 
   # 川の一覧を作る
-  edges = map["edges"].flat_map{|src_key, hsh| hsh.map{|tgt_key, owner|
-    [src_key.to_i, tgt_key.to_i, owner]
-  }}
+  edge_list = map["edges"].flat_map{|src_key, hsh| hsh.map{|tgt_key, owner|
+    src, tgt = src_key.to_i, tgt_key.to_i
+    [src, tgt, owner] if src < tgt
+  }.compact}
 
-  src, tgt, new_state = next_river(edges, map["mines"], my_state)
+  src, tgt, new_state = next_river(edge_list, map["mines"], my_state)
 
   send({claim: {punter: id,
                 source: src,
