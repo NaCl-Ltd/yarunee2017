@@ -3,7 +3,7 @@ require 'sinatra'
 require 'sinatra/reloader'
 
 get '/' do
-  map_file ||= File.join(__dir__, params[:playlog])
+  map_file ||= File.join(__dir__, "..", params[:playlog])
   initial_data, *game_progress, finish_data = File.readlines(map_file).map{|line| JSON.parse(line)}
   orig_map_data = initial_data["map"]
 
