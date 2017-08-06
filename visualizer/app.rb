@@ -2,8 +2,11 @@ require 'json'
 require 'sinatra'
 require 'sinatra/reloader'
 
+map_file = "#{__dir__}/../" +
+  "data/play_logs/yhara/game_9009.jsons"
+
 get '/' do
-  initial_data, *game_progress, finish_data = File.readlines("#{__dir__}/../game_9027.jsons").map{|line| JSON.parse(line)}
+  initial_data, *game_progress, finish_data = File.readlines(map_file).map{|line| JSON.parse(line)}
   orig_map_data = initial_data["map"]
 
   # マップデータを読み込む

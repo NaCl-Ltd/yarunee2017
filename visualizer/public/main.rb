@@ -2,13 +2,25 @@ include DXOpal
 Window.width = 1000
 Window.height = 600
 COLORS = [
-  C_GREEN,
-  C_RED,
-  C_MAGENTA,
-  C_CYAN,
-  [128, 128, 0],
-  [128, 128, 128],
-  C_BLACK,
+  [0, 255, 0],  # green
+  [255, 0, 0],  # red
+  [0, 255, 255], # aqua
+  [0, 255, 0], # lime
+
+  [255, 0, 255], # fuchsia
+  [128, 0, 0], # maroon
+  [128, 128, 0], # olive
+  [0, 128, 0], #lime
+
+  [0, 128, 128], #teal
+  [0, 0, 128], #navy
+  [128, 0, 128], #purple
+  [128, 128, 128], #gray
+
+  [255, 165, 0], #orange
+  [192, 192, 192], #silver
+  [200, 200, 0],
+  [30, 30, 30],
 
   C_BLUE,
 ]
