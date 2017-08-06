@@ -33,7 +33,7 @@ end
 game_boards = []
 agent = Mechanize.new
 page = agent.get(STATUS_URI)
-page.css("tr").each do |tr|
+page.css("tr")[1 .. -1].each do |tr|
   md = %r|Waiting for punters. (\d+)/(\d+)|.match(tr.css("td")[0].content)
   current_n_panters = md[0].to_i
   required_n_panters = md[0].to_i
