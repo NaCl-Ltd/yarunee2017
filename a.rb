@@ -66,18 +66,39 @@ def parse_map_data(map_data)
 end
 
 # rivers: [[src, dst, owner], ...]
-def next_river(rivers, mines)
+def next_river(rivers, mines, state)
+  tips = state["tips"]
   free_rivers = rivers.select{|_, _, owner| owner == -1}
 
   # 鉱脈周りの川が空いていたらとりあえず押さえる
-  src, tgt, _ = free_rivers.find{|s, t|
-    mines.include?(s) || mines.include?(t)
-  }
-  return [src, tgt] if src
+  src, tgt = free_rivers.each do |s, t, _|
+    if mines.include?(s)  && mines.include?(t)
+      break s, t
+    elsif mines.include?(s)
+      state["tips"] << [t, 1]
+      break s, t
+    elsif mines.include?(t)
+      state["tips"] << [s, 1]
+      break s, t
+    end
+  end
+  state["tips"].sort_by!{|node, len| -len}
+  return src, tgt, state if src
 
-  # そうでない場合、適当に選ぶ
+  # そうでない場合、枝を伸ばしたい
+  state["tips"].each.with_index do |(node, len), idx|
+    free_rivers.each do |s, t, _|
+      if s == node || t == node
+        state["tips"][idx] = [(s == node ? t : s), len+1]
+        state["tips"].sort_by!{|node, len| -len}
+        return s, t, state
+      end
+    end
+  end
+
+  # 無理なら適当に
   src, tgt, _ = free_rivers.first
-  return [src, tgt]
+  return src, tgt, state
 end
 
 log Time.now.to_s
@@ -88,7 +109,12 @@ res = read
 case
 when (id = res["punter"])
   File.open($play_log, "a"){|f| f.puts res.to_json} if $play_log
-  my_state = {id: id, n_punters: res["punters"], map: parse_map_data(res["map"]) }
+  my_state = {
+    id: id,
+    n_punters: res["punters"],
+    map: parse_map_data(res["map"]),
+    tips: [],
+  }
   send({ready: id, state: my_state})
 when res["move"]
   my_state = res["state"]
@@ -108,12 +134,12 @@ when res["move"]
     [src_key.to_i, tgt_key.to_i, owner]
   }}
 
-  src, tgt = next_river(edges, map["mines"])
+  src, tgt, new_state = next_river(edges, map["mines"], my_state)
 
   send({claim: {punter: id,
                 source: src,
                 target: tgt},
-        state: my_state})
+        state: new_state})
 when res["stop"]
   File.open($play_log, "a"){|f| f.puts res.to_json} if $play_log
   log "Game over (score: #{res["stop"]["scores"]})"
