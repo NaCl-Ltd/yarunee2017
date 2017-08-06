@@ -9,7 +9,7 @@ TOP_SRC_PATH = Pathname(__dir__).parent.exapand_path
 STATUS_URI = URI("http://punter.inf.ed.ac.uk/status.html")
 LAMDUCT_VERSION = "0.3"
 LAMDUCT_URI = URI("https://raw.githubusercontent.com/icfpcontest2017/icfpcontest2017.github.io/master/static/lamduct-#{lamduct_version}")
-LAMDUCT_PATH = TOP_SRC_PATH / "vendor/downloads/lamduct-#{lamduct_version}")
+LAMDUCT_PATH = TOP_SRC_PATH / "vendor/downloads/lamduct-#{lamduct_version}"
 VISUAL_LOG_PATH = Pathname("/tmp/visual.log")
 UPLOAD_CHANNEL = "test"
 
