@@ -13,4 +13,8 @@ build:
     - mkdir -pv vendor/downloads
     - cd reporter/
     - bundle install -j$(nproc) --path=../vendor/bundle
+
+deploy:
+  script:
+    - cd reporter/
     - bundle exec ./run.rb
