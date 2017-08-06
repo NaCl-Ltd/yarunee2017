@@ -2,15 +2,15 @@ include DXOpal
 Window.width = 1000
 Window.height = 600
 COLORS = [
-  [0, 255, 0],  # green
+  [0,135,255],  # DodgerBlue1
   [255, 0, 0],  # red
-  [0, 255, 255], # aqua
   [0, 255, 0], # lime
-
   [255, 0, 255], # fuchsia
+
   [128, 0, 0], # maroon
   [128, 128, 0], # olive
-  [0, 128, 0], #lime
+  [135,0,255], #Purple
+  [0, 255, 255], # aqua
 
   [0, 128, 128], #teal
   [0, 0, 128], #navy
