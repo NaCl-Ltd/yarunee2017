@@ -25,6 +25,12 @@ get '/' do
     edges[[s,t].min][[s,t].max] = -1
   end
 
+  # スコアを読み込む
+  scores = []
+  finish_data["stop"]["scores"].each do |x| 
+    scores[x["punter"]] = x["score"]
+  end
+
   # ゲームの経過を反映
   game_progress.each do |turn|
     turn["move"]["moves"].each do |move|
@@ -51,6 +57,8 @@ get '/' do
     nodes: nodes,
     edges: edges_ary,
     mines: orig_map_data["mines"],
+    player_id: initial_data["punter"],
+    scores: scores,
   }
 
   <<-EOD

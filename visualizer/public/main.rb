@@ -13,6 +13,7 @@ COLORS = [
   C_BLUE,
 ]
 MARGIN = 5
+INFO_FONT = Font.new(10)
 
 done = false
 Window.load_resources do
@@ -34,6 +35,7 @@ Window.load_resources do
       edges = mapData.JS["edges"]
       nodes = mapData.JS["nodes"]
 
+      # 辺を描画
       edges.each do |edge|
         src, tgt, owner = `edge[0]`, `edge[1]`, `edge[2]`
         x1 = `(nodes[src][0] - min_x) * scale` + MARGIN
@@ -54,6 +56,7 @@ Window.load_resources do
         Window.draw_line(x1, y1, x2, y2, COLORS[owner])
       end
 
+      # 点を描画
       nodes.each do |node|
         x, y, is_mine = `node[0]`, `node[1]`, `node[2]`
 
@@ -65,9 +68,22 @@ Window.load_resources do
                                 (is_mine ? C_RED : C_BLACK))
       end
 
+      # スコア情報を描画
+      player_id = mapData.JS["player_id"]
+      scores = mapData.JS["scores"]
+      i = 0
+      scores.each do |score|
+        msg = `"player" + i + ": " + score;`
+        if `i == player_id`
+          `msg += "*"`
+        end
+        Window.draw_font(0, i*10, msg, INFO_FONT, color: COLORS[i])
+        i+=1
+      end
+
       done = true
     else
-      Window.draw_font(0, 100, "Loading..", Font.default)
+      Window.draw_font(0, 100, "Loading..", Font.default, color: C_BLACK)
     end
   end
 end
