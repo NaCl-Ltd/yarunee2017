@@ -29,7 +29,7 @@ module Punter
         end
       end
       n.times { d << STDIN.getc}
-      log(d)
+      log(n.to_s + ":" + d)
       r = JSON.parse(d)
       @state = r["state"] || {}
       r
@@ -54,6 +54,7 @@ module Punter
           @state["rivers"][river["target"].to_s] << river["source"]
         end
         @state["mines"] = hash["map"]["mines"]
+        @state["my_sites"] = @state["mines"]
         output({ ready: @state["punter"] })
       when hash["move"]
         hash["move"]["moves"].each do |move|
@@ -63,6 +64,11 @@ module Punter
             @state["rivers"].delete(m["source"].to_s) if @state["rivers"][m["source"].to_s].empty?
             @state["rivers"][m["target"].to_s].delete(m["source"])
             @state["rivers"].delete(m["target"].to_s) if @state["rivers"][m["target"].to_s].empty?
+            if m["punter"] == @state["punter"]
+              %w(source target).each do |label|
+                @state["my_sites"] << m[label] unless @state["my_sites"].include?(m[label])
+              end
+            end
           end
         end
         solve
@@ -70,7 +76,13 @@ module Punter
     end
 
     def solve
-      r = @state["rivers"].to_a.sample
+      r = nil
+      @state["my_sites"].each do |site|
+        if @state["rivers"][site.to_s] && !@state["rivers"][site.to_s].empty?
+          r = [site, @state["rivers"][site.to_s]]
+          break
+        end
+      end
       river = {
         source: r[0].to_i, target: r[1].sample, punter: @state["punter"]
       }
