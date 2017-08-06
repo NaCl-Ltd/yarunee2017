@@ -86,21 +86,46 @@ module Punter
     end
 
     def solve
-      r = nil
+      calc_site_distance
+      source = nil
+      target = nil
       @state["my_sites"].each do |site|
-        if @state["rivers"][site.to_s] && !@state["rivers"][site.to_s].empty?
-          r = [site, @state["rivers"][site.to_s]]
+        targets = @state["rivers"][site.to_s]
+        if targets && !targets.empty?
+          source = site
+          target = targets.min_by { |i| @sites[i] }
           break
         end
       end
-      if r
+      if source
         river = {
-          source: r[0].to_i, target: r[1].sample, punter: @state["punter"]
+          source: source, target: target, punter: @state["punter"]
         }
         output({ claim: river })
       else
         pass = { pass: { punter: @state["punter"]}}
         output(pass)
+      end
+    end
+
+    # 各siteが残りの川を使って行ける最短距離を求める
+    def calc_site_distance
+      @sites = {}
+      @state["sites"].each do |site|
+        @sites[site] = 99999999
+      end
+      @state["mines"].each { |i| @sites[i] = 0 }
+      q = @state["mines"].map { |i| [i, 0] }
+      q.each do |site, d|
+        targets = @state["rivers"][site.to_s]
+        if targets
+          targets.each do |target|
+            if @sites[target] > d + 1
+              @sites[target] = d + 1
+              q << [target, d + 1]
+            end
+          end
+        end
       end
     end
   end
