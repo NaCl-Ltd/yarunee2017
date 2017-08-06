@@ -11,6 +11,12 @@ module Punter
       @log.puts str
     end
 
+    def visual_log(hash)
+      @visual_log ||= File.open("/tmp/visual.log", "a")
+      @visual_log.sync = true
+      @visual_log.puts hash.to_json
+    end
+
     def output(hash)
       hash["state"] = @state if @state
       json = hash.to_json
@@ -43,6 +49,7 @@ module Punter
       input # you: "yarunee"
 
       hash = input
+      visual_log(hash)
       case
       when hash["stop"]
       when hash["punter"]
