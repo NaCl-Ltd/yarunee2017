@@ -2,9 +2,12 @@ require "json"
 
 module Punter
   class Cli
-    def log(str)
-      @log ||= File.open("/tmp/aaa.log", "a")
+    def initialize
+      @log = File.open("/tmp/aaa.log", "a")
       @log.sync = true
+    end
+
+    def log(str)
       @log.puts str
     end
 
