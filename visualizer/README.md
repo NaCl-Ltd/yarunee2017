@@ -4,7 +4,7 @@
 
 1. visualizer/app.rbを開いて、入力ファイル名(*.jsons)を書き換える
 1. gem i sinatra
-1. ruby app.rb
+1. bundle exec ruby app.rb
 1. open http://localhost:4567
 
 ## 入力仕様
