@@ -50,12 +50,20 @@ module Punter
         @state["mines"] = hash["map"]["mines"]
         output({ ready: @state["punter"] })
       when hash["move"]
+        hash["move"]["moves"].each do |move|
+          if move["claim"]
+            m = move["claim"]
+            @state["rivers"].delete_if do |river|
+              river["source"] == m["source"] && river["target"] == m["target"]
+            end
+          end
+        end
         solve
       end
     end
 
     def solve
-      river = @state["rivers"].sample
+      river = @state["rivers"].sample.dup
       river["punter"] = @state["punter"]
       output({ claim: river })
     end
