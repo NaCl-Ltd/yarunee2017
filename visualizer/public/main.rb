@@ -30,7 +30,7 @@ INFO_FONT = Font.new(10)
 done = false
 Window.load_resources do
   Window.loop do
-    asdf if done
+    raise "ok" if done # DXOpalに一回だけ描画を行うようなAPIがまだないためraiseで止めている
     Window.draw_box_fill(0, 0, Window.width, Window.height, [255, 255, 255])
     Window.draw_font(0, 0, "FPS: #{Window.real_fps}", Font.default)
     
@@ -54,17 +54,6 @@ Window.load_resources do
         y1 = `(nodes[src][1] - min_y) * scale` + MARGIN
         x2 = `(nodes[tgt][0] - min_x) * scale` + MARGIN
         y2 = `(nodes[tgt][1] - min_y) * scale` + MARGIN
-
-#        ctx = Window._img.ctx
-#        rgba = Window._img.send(:_rgba, COLORS[owner][0,3])
-#        a = %x{
-#        console.debug(ctx);
-#          ctx.beginPath();
-#          ctx.strokeStyle = #{rgba};
-#          ctx.moveTo(x1, y1); 
-#          ctx.lineTo(x2, y2); 
-#          ctx.stroke(); 
-#        }
         Window.draw_line(x1, y1, x2, y2, COLORS[owner])
       end
 

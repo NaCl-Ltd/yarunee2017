@@ -3,7 +3,7 @@ require 'sinatra'
 require 'sinatra/reloader'
 
 map_file = "#{__dir__}/../" +
-  "data/play_logs/yhara/game_9009.jsons"
+  "data/play_logs/yhara/game_9073_tube_nora.jsons"
 
 get '/' do
   initial_data, *game_progress, finish_data = File.readlines(map_file).map{|line| JSON.parse(line)}
