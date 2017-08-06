@@ -1,5 +1,4 @@
 #!/bin/sh
 
 src_dir=`dirname $0`/src
-export RUBYLIB=$src_dir/lib
 exec env -- RUBYLIB=$src_dir/lib $src_dir/exe/punter
