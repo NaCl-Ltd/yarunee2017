@@ -74,7 +74,8 @@ end
 def calc_dists(nodes, edges, root_id)
   node_idx = nodes.map.with_index{|node, i| [node, i]}.to_h
   visited = Array.new(nodes.length)
-  dists = Array.new(nodes.length)
+  # TODO: 盤面が連結でないケースはあるか？
+  dists = Array.new(nodes.length, -1)
   dists[node_idx[root_id]] = 0
 
   q = [root_id]
@@ -154,6 +155,8 @@ when (id = res["punter"])
   map_data["mines"].each do |mine_id|
     mine_dists[mine_id] = calc_dists(map_data["nodes"], map_data["edges"], mine_id)
   end
+  # 伸びしろでソート
+  map_data["mines"].sort_by!{|mine_id| -mine_dists[mine_id].max}
 
   my_state = {
     id: id,
