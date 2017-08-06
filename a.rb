@@ -71,11 +71,9 @@ end
 
 # rootからの距離の一覧を作る
 # return: [距離の一覧(map_data["nodes"]に対応)] 
-def calc_dists(map_data, root_id)
-  nodes = map_data["nodes"]
+def calc_dists(nodes, edges, root_id)
   node_idx = nodes.map.with_index{|node, i| [node, i]}.to_h
   visited = Array.new(nodes.length)
-  edges = map_data["edges"]
   dists = Array.new(nodes.length)
   dists[node_idx[root_id]] = 0
 
@@ -83,7 +81,8 @@ def calc_dists(map_data, root_id)
   until q.empty?
     from = q.shift
     visited[node_idx[from]] = true
-    edges[from].each do |to, _|
+    edges[from.to_s].each do |key, _|
+      to = key.to_i
       next if visited[node_idx[to]]
       dists[node_idx[to]] = dists[node_idx[from]] + 1
       q.push(to)
@@ -93,36 +92,43 @@ def calc_dists(map_data, root_id)
   return dists
 end
 
-def next_river(edges, mines, state)
+def next_river(nodes, edges, mines, state)
+  mine_dists = state["mine_dists"]
   # 鉱脈周りの川を一本ずつ押さえる
-  mines.each do |mine_id|
-    if state["tips"].any?{|_, _, x| x == mine_id}
-      log minechecking: :skip, mine_id: mine_id, tips: state["tips"]
-      next
-    end
-    edges[mine_id.to_s].each do |key, owner|
-      log minechecking: true, mine_id: mine_id, ko: [key, owner]
-      dst = key.to_i
+  mines.each do |mine|
+    mine_key = mine.to_s
+    next if state["domain"].key?(mine_key)
+
+    edges[mine_key].each do |dst_key, owner|
+      dst = dst_key.to_i
       if owner == -1
-        state["tips"] << [dst, 1, mine_id]
-        state["tips"].sort_by!{|node, len, mine| -len}
-        log minechecking: :new, tips: state["tips"]
-        return mine_id, dst, state
+        state["domain"][mine_key] = [dst]
+        return mine, dst, state
       end
     end
   end
 
-  # そうでない場合、枝を伸ばしたい
-  state["tips"].each.with_index do |(node, len, mine), idx|
-    edges[node.to_s].each do |key, owner|
-      if owner == -1
-        dst = key.to_i
-        state["tips"][idx] = [dst, len+1, mine]
-        state["tips"].sort_by!{|node, len, mine| -len}
-        return node, dst, state
-      end
-    end
+  # 枝を伸ばす
+  candidates = state["domain"].flat_map{|mine_key, nodes|
+    mine = mine_key.to_i
+    nodes.flat_map{|node|
+      edges[node.to_s].flat_map{|dst_key, owner|
+        dst = dst_key.to_i
+        if owner == -1
+          score = mine_dists[mine_key][nodes.index(node)]
+          [[score, mine_key, node, dst]]
+        else
+          []
+        end
+      }
+    }
+  }
+  score, mine_key, node, dst = candidates.max_by{|x| x[0]}
+  if score
+    state["domain"][mine_key] << dst
+    return node, dst, state
   end
+    # TODO: domain併合処理
 
   # 無理なら適当に
   edges.each do |key1, hsh|
@@ -145,9 +151,9 @@ when (id = res["punter"])
 
   # 前処理
   mine_dists = {}
-  #map_data["mines"].each do |mine_id|
-  #  mine_dists[mine_id] = calc_dists(map_data, mine_id)
-  #end
+  map_data["mines"].each do |mine_id|
+    mine_dists[mine_id] = calc_dists(map_data["nodes"], map_data["edges"], mine_id)
+  end
 
   my_state = {
     id: id,
@@ -156,7 +162,9 @@ when (id = res["punter"])
     # 各mineから各点までの距離の一覧
     # {mine_id => [各点までの距離(map["nodes"]に対応)]}
     mine_dists: mine_dists,
-    tips: [],
+    # 領地
+    # {mines: [mine_id, ...], nodes: [node_id, ...]}
+    domain: {},
   }
   send({ready: id, state: my_state})
 when res["move"]
@@ -175,7 +183,7 @@ when res["move"]
     map["edges"][tgt][src] = claimer_id
   end
 
-  src, tgt, new_state = next_river(map["edges"], map["mines"], my_state)
+  src, tgt, new_state = next_river(map["nodes"], map["edges"], map["mines"], my_state)
 
   send({claim: {punter: id,
                 source: src,
