@@ -55,11 +55,12 @@ run(LAMDUCT_PATH.to_s, "--game-port=#{game_board[:port]}", "--log-level=3",
 
 # 実行結果をSlackへ投稿
 title = [
-  ENV["CI_COMMIT_REF_NAME"],
-  ENV["CI_COMMIT_SHA"],
   game_board[:port],
   game_board[:map_name],
   game_board[:punters],
+  ENV["CI_JOB_ID"],
+  ENV["CI_COMMIT_REF_NAME"],
+  ENV["CI_COMMIT_SHA"],
 ].join("-")
 Slack.configure do |c|
   c.token = ENV["SLACK_API_TOKEN"]
