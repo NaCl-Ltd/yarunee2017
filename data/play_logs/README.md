@@ -24,3 +24,10 @@
 - nari/game_9072_tube.jsons
 - メンバー: 210017, kontur.ru_GA, kontur.ru_F, kontur.ru_MRVWA, kontur.ru_GA, yarunee(a.rb), yarunee(punter)
   - punter5 - a.rb, punter6 - punter
+
+### tube 野良対戦 8/6 20:00頃
+
+- nari/game_9191_tube_b.jsons
+- メンバー: kontur.ru_GA, kontur.ru_LDK, kontur.ru_CA, yarunee, yarunee, yarunee, tikuwa, yarunee
+  - p3 - b.rb, p4 - a.rb, p5 - punter, p7 - punter
+
