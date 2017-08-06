@@ -2,10 +2,8 @@ require 'json'
 require 'sinatra'
 require 'sinatra/reloader'
 
-map_file = "#{__dir__}/../" +
-  "data/play_logs/yhara/game_9073_tube_nora.jsons"
-
 get '/' do
+  map_file ||= File.join(__dir__, params[:playlog])
   initial_data, *game_progress, finish_data = File.readlines(map_file).map{|line| JSON.parse(line)}
   orig_map_data = initial_data["map"]
 
