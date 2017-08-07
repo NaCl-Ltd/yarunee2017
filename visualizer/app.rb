@@ -32,18 +32,13 @@ get '/' do
     scores[x["punter"]] = x["score"]
   end
 
-  # ゲームの経過を反映
-  game_progress.each do |turn|
-    turn["move"]["moves"].each do |move|
-      next unless move["claim"]  # passの場合はスキップ
-      id, src, tgt = move["claim"].values_at("punter", "source", "target")
-      edges[[src,tgt].min][[src,tgt].max] = id
-    end
-  end
-  edges_ary = edges.sort.flat_map{|src, items|
+  # 川の情報を設定
+  edges_hash = {}
+  edges.sort.flat_map{|src, items|
     items.sort.map{|dst, owner|
       raise if src >= dst
-      [src, dst, owner]
+      edges_hash[src] ||= {}
+      edges_hash[src][dst] = owner
     }
   }
 
@@ -56,9 +51,10 @@ get '/' do
     width: max_x - min_x,
     height: max_y - min_y,
     nodes: nodes,
-    edges: edges_ary,
+    edges: edges_hash,
     mines: orig_map_data["mines"],
     player_id: initial_data["punter"],
+    game_progress: game_progress,
     scores: scores,
   }
 

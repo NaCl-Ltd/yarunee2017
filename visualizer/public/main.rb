@@ -28,15 +28,16 @@ MARGIN = 5
 INFO_FONT = Font.new(10)
 
 done = false
+turn_num = -1
 Window.load_resources do
   Window.loop do
-    raise "ok" if done # DXOpalに一回だけ描画を行うようなAPIがまだないためraiseで止めている
     Window.draw_box_fill(0, 0, Window.width, Window.height, [255, 255, 255])
     Window.draw_font(0, 0, "FPS: #{Window.real_fps}", Font.default)
-    
+
     if (mapData = `window.mapData`)
       width = mapData.JS[:width]
       height = mapData.JS[:height]
+      end_turn = mapData.JS["game_progress"].size
       scale_x = (Window.width - MARGIN*2) / width
       scale_y = (Window.height - MARGIN*2) / height
       scale = [scale_x, scale_y].min
@@ -44,17 +45,46 @@ Window.load_resources do
       min_y = mapData.JS["min_y"]
       Window.draw_font(0, 100, "#{width} #{height}", Font.default)
 
-      edges = mapData.JS["edges"]
+      if turn_num < 0
+        turn_num = end_turn
+      end
+      if Input.key_push?(K_RIGHT)
+        turn_num += 1 if turn_num < end_turn
+      end
+      if Input.key_push?(K_LEFT)
+        turn_num -= 1 if turn_num > 0
+      end
+
+      edges = Hash.new(mapData.JS["edges"])
       nodes = mapData.JS["nodes"]
 
+      mapData.JS["game_progress"][0..turn_num].each do |turn|
+        moves = `turn["move"]["moves"]`
+        moves.each do |move|
+          next unless move.JS["claim"]  # passの場合はスキップ
+          claim = move.JS["claim"]
+          `console.log(claim)`
+          id = claim.JS["punter"]
+          src = claim.JS["source"]
+          tgt = claim.JS["target"]
+          if src < tgt
+            edges[src.to_s][tgt.to_s] = id
+          else
+            edges[tgt.to_s][src.to_s] = id
+          end
+        end
+      end
+      `console.log(edges)`
+
       # 辺を描画
-      edges.each do |edge|
-        src, tgt, owner = `edge[0]`, `edge[1]`, `edge[2]`
-        x1 = `(nodes[src][0] - min_x) * scale` + MARGIN
-        y1 = `(nodes[src][1] - min_y) * scale` + MARGIN
-        x2 = `(nodes[tgt][0] - min_x) * scale` + MARGIN
-        y2 = `(nodes[tgt][1] - min_y) * scale` + MARGIN
-        Window.draw_line(x1, y1, x2, y2, COLORS[owner])
+      edges.each do |src, tgts|
+        tgts.each do |tgt, owner|
+          x1 = `(nodes[src][0] - min_x) * scale` + MARGIN
+          y1 = `(nodes[src][1] - min_y) * scale` + MARGIN
+          x2 = `(nodes[tgt][0] - min_x) * scale` + MARGIN
+          y2 = `(nodes[tgt][1] - min_y) * scale` + MARGIN
+          Window.draw_line(x1, y1, x2, y2, COLORS[owner])
+        end
       end
 
       # 点を描画
@@ -73,6 +103,8 @@ Window.load_resources do
       player_id = mapData.JS["player_id"]
       scores = mapData.JS["scores"]
       i = 0
+      Window.draw_font(0, i*10, `"turn: " + turn_num + " / " + end_turn`, INFO_FONT, color: C_BLACK)
+      i += 1
       scores.each do |score|
         msg = `"player" + i + ": " + score;`
         if `i == player_id`
