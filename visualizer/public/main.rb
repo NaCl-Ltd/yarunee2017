@@ -83,7 +83,7 @@ Window.load_resources do
           y1 = `(nodes[src][1] - min_y) * scale` + MARGIN
           x2 = `(nodes[tgt][0] - min_x) * scale` + MARGIN
           y2 = `(nodes[tgt][1] - min_y) * scale` + MARGIN
-          Window.draw_line(x1, y1, x2, y2, COLORS[owner])
+          Window.draw_line(x1, y1, x2, y2, COLORS[owner.to_i])
         end
       end
 
@@ -110,7 +110,7 @@ Window.load_resources do
         if `i == player_id`
           `msg += "*"`
         end
-        Window.draw_font(0, i*10, msg, INFO_FONT, color: COLORS[i])
+        Window.draw_font(0, i*10, msg, INFO_FONT, color: COLORS[i-1])
         i+=1
       end
 
