@@ -27,22 +27,22 @@ COLORS = [
 MARGIN = 5
 INFO_FONT = Font.new(10)
 
-done = false
+mapData = `window.mapData`
+width = mapData.JS[:width]
+height = mapData.JS[:height]
+end_turn = mapData.JS["game_progress"].size
+scale_x = (Window.width - MARGIN*2) / width
+scale_y = (Window.height - MARGIN*2) / height
+scale = [scale_x, scale_y].min
+min_x = mapData.JS["min_x"]
+min_y = mapData.JS["min_y"]
+
 turn_num = -1
 Window.load_resources do
   Window.loop do
     Window.draw_box_fill(0, 0, Window.width, Window.height, [255, 255, 255])
     Window.draw_font(0, 0, "FPS: #{Window.real_fps}", Font.default)
 
-    if (mapData = `window.mapData`)
-      width = mapData.JS[:width]
-      height = mapData.JS[:height]
-      end_turn = mapData.JS["game_progress"].size
-      scale_x = (Window.width - MARGIN*2) / width
-      scale_y = (Window.height - MARGIN*2) / height
-      scale = [scale_x, scale_y].min
-      min_x = mapData.JS["min_x"]
-      min_y = mapData.JS["min_y"]
       Window.draw_font(0, 100, "#{width} #{height}", Font.default)
 
       if turn_num < 0
@@ -63,7 +63,6 @@ Window.load_resources do
         moves.each do |move|
           next unless move.JS["claim"]  # passの場合はスキップ
           claim = move.JS["claim"]
-          `console.log(claim)`
           id = claim.JS["punter"]
           src = claim.JS["source"]
           tgt = claim.JS["target"]
@@ -74,7 +73,6 @@ Window.load_resources do
           end
         end
       end
-      `console.log(edges)`
 
       # 辺を描画
       edges.each do |src, tgts|
@@ -113,11 +111,6 @@ Window.load_resources do
         Window.draw_font(0, i*10, msg, INFO_FONT, color: COLORS[i-1])
         i+=1
       end
-
-      done = true
-    else
-      Window.draw_font(0, 100, "Loading..", Font.default, color: C_BLACK)
-    end
   end
 end
 

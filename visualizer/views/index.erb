@@ -3,13 +3,14 @@
   <head>
     <meta charset= "utf-8" />
     <title>パンター</title>
-    <script type="text/javascript" src="dxopal.min.js"></script>
-    <script type="text/ruby" src="main.rb"></script>
   </head>
   <body>
     <canvas id="canvas"></canvas>
+
     <script type="text/javascript">
       window.mapData = <%= @mapData.to_json %>;
     </script>
+    <script type="text/ruby" src="main.rb"></script>
+    <script type="text/javascript" src="dxopal.min.js"></script>
   </body>
 </html>
