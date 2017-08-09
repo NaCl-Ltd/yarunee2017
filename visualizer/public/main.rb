@@ -41,9 +41,6 @@ turn_num = -1
 Window.load_resources do
   Window.loop do
     Window.draw_box_fill(0, 0, Window.width, Window.height, [255, 255, 255])
-    Window.draw_font(0, 0, "FPS: #{Window.real_fps}", Font.default)
-
-    Window.draw_font(0, 100, "#{width} #{height}", Font.default)
 
     if turn_num < 0
       turn_num = end_turn
@@ -97,16 +94,16 @@ Window.load_resources do
                               (is_mine ? C_RED : C_BLACK))
     end
 
-    # スコア情報を描画
+    # 情報を描画
     player_id = mapData.JS["player_id"]
     scores = mapData.JS["scores"]
-    i = 0
-    Window.draw_font(0, i*10, `"turn: " + turn_num + " / " + end_turn`, INFO_FONT, color: C_BLACK)
-    i += 1
+    Window.draw_font(0, 0, "FPS: #{Window.real_fps}", INFO_FONT, color: C_BLACK)
+    Window.draw_font(0, 10, `"turn: " + turn_num + " / " + end_turn`, INFO_FONT, color: C_BLACK)
+    i = 2
     scores.each do |score|
       msg = `"player" + i + ": " + score;`
       if `i == player_id`
-        `msg += "*"`
+        `msg += " (you)"`
       end
       Window.draw_font(0, i*10, msg, INFO_FONT, color: COLORS[i-1])
       i+=1
