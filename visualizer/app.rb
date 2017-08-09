@@ -43,7 +43,7 @@ get '/' do
   }
 
   # Opal側で使用するデータ
-  mapData = {
+  @mapData = {
     min_x: min_x,
     min_y: min_y,
     max_x: max_x,
@@ -57,22 +57,5 @@ get '/' do
     game_progress: game_progress,
     scores: scores,
   }
-
-  <<-EOD
-    <!DOCTYPE html>
-    <html>
-      <head>
-        <meta charset= "utf-8" />
-        <title>パンター</title>
-        <script type="text/javascript" src="dxopal.min.js"></script>
-        <script type="text/ruby" src="main.rb"></script>
-      </head>
-      <body>
-        <canvas id="canvas"></canvas>
-        <script type="text/javascript">
-          window.mapData = #{mapData.to_json};
-        </script>
-      </body>
-    </html>
-  EOD
+  erb :index
 end
