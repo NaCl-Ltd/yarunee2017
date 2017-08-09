@@ -43,74 +43,74 @@ Window.load_resources do
     Window.draw_box_fill(0, 0, Window.width, Window.height, [255, 255, 255])
     Window.draw_font(0, 0, "FPS: #{Window.real_fps}", Font.default)
 
-      Window.draw_font(0, 100, "#{width} #{height}", Font.default)
+    Window.draw_font(0, 100, "#{width} #{height}", Font.default)
 
-      if turn_num < 0
-        turn_num = end_turn
-      end
-      if Input.key_push?(K_RIGHT)
-        turn_num += 1 if turn_num < end_turn
-      end
-      if Input.key_push?(K_LEFT)
-        turn_num -= 1 if turn_num > 0
-      end
+    if turn_num < 0
+      turn_num = end_turn
+    end
+    if Input.key_push?(K_RIGHT)
+      turn_num += 1 if turn_num < end_turn
+    end
+    if Input.key_push?(K_LEFT)
+      turn_num -= 1 if turn_num > 0
+    end
 
-      edges = Hash.new(mapData.JS["edges"])
-      nodes = mapData.JS["nodes"]
+    edges = Hash.new(mapData.JS["edges"])
+    nodes = mapData.JS["nodes"]
 
-      mapData.JS["game_progress"][0..turn_num].each do |turn|
-        moves = `turn["move"]["moves"]`
-        moves.each do |move|
-          next unless move.JS["claim"]  # passの場合はスキップ
-          claim = move.JS["claim"]
-          id = claim.JS["punter"]
-          src = claim.JS["source"]
-          tgt = claim.JS["target"]
-          if src < tgt
-            edges[src.to_s][tgt.to_s] = id
-          else
-            edges[tgt.to_s][src.to_s] = id
-          end
+    mapData.JS["game_progress"][0..turn_num].each do |turn|
+      moves = `turn["move"]["moves"]`
+      moves.each do |move|
+        next unless move.JS["claim"]  # passの場合はスキップ
+        claim = move.JS["claim"]
+        id = claim.JS["punter"]
+        src = claim.JS["source"]
+        tgt = claim.JS["target"]
+        if src < tgt
+          edges[src.to_s][tgt.to_s] = id
+        else
+          edges[tgt.to_s][src.to_s] = id
         end
       end
+    end
 
-      # 辺を描画
-      edges.each do |src, tgts|
-        tgts.each do |tgt, owner|
-          x1 = `(nodes[src][0] - min_x) * scale` + MARGIN
-          y1 = `(nodes[src][1] - min_y) * scale` + MARGIN
-          x2 = `(nodes[tgt][0] - min_x) * scale` + MARGIN
-          y2 = `(nodes[tgt][1] - min_y) * scale` + MARGIN
-          Window.draw_line(x1, y1, x2, y2, COLORS[owner.to_i])
-        end
+    # 辺を描画
+    edges.each do |src, tgts|
+      tgts.each do |tgt, owner|
+        x1 = `(nodes[src][0] - min_x) * scale` + MARGIN
+        y1 = `(nodes[src][1] - min_y) * scale` + MARGIN
+        x2 = `(nodes[tgt][0] - min_x) * scale` + MARGIN
+        y2 = `(nodes[tgt][1] - min_y) * scale` + MARGIN
+        Window.draw_line(x1, y1, x2, y2, COLORS[owner.to_i])
       end
+    end
 
-      # 点を描画
-      nodes.each do |node|
-        x, y, is_mine = `node[0]`, `node[1]`, `node[2]`
+    # 点を描画
+    nodes.each do |node|
+      x, y, is_mine = `node[0]`, `node[1]`, `node[2]`
 
-        px = `(x - min_x) * scale` + MARGIN
-        py = `(y - min_y) * scale` + MARGIN
+      px = `(x - min_x) * scale` + MARGIN
+      py = `(y - min_y) * scale` + MARGIN
 
-        Window.draw_circle_fill(px, py, 
-                                (is_mine ? 5 : 2),
-                                (is_mine ? C_RED : C_BLACK))
+      Window.draw_circle_fill(px, py, 
+                              (is_mine ? 5 : 2),
+                              (is_mine ? C_RED : C_BLACK))
+    end
+
+    # スコア情報を描画
+    player_id = mapData.JS["player_id"]
+    scores = mapData.JS["scores"]
+    i = 0
+    Window.draw_font(0, i*10, `"turn: " + turn_num + " / " + end_turn`, INFO_FONT, color: C_BLACK)
+    i += 1
+    scores.each do |score|
+      msg = `"player" + i + ": " + score;`
+      if `i == player_id`
+        `msg += "*"`
       end
-
-      # スコア情報を描画
-      player_id = mapData.JS["player_id"]
-      scores = mapData.JS["scores"]
-      i = 0
-      Window.draw_font(0, i*10, `"turn: " + turn_num + " / " + end_turn`, INFO_FONT, color: C_BLACK)
-      i += 1
-      scores.each do |score|
-        msg = `"player" + i + ": " + score;`
-        if `i == player_id`
-          `msg += "*"`
-        end
-        Window.draw_font(0, i*10, msg, INFO_FONT, color: COLORS[i-1])
-        i+=1
-      end
+      Window.draw_font(0, i*10, msg, INFO_FONT, color: COLORS[i-1])
+      i+=1
+    end
   end
 end
 
