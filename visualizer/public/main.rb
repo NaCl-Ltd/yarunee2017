@@ -36,63 +36,76 @@ scale_y = (Window.height - MARGIN*2) / height
 scale = [scale_x, scale_y].min
 min_x = mapData.JS["min_x"]
 min_y = mapData.JS["min_y"]
+nodes = mapData.JS["nodes"]
 
-turn_num = -1
+# 点をオフスクリーンレンダリングする
+nodes_img = Image.new(Window.width, Window.height)
+nodes.each do |node|
+  x, y, is_mine = `node[0]`, `node[1]`, `node[2]`
+
+  px = `(x - min_x) * scale` + MARGIN
+  py = `(y - min_y) * scale` + MARGIN
+
+  nodes_img.circle_fill(px, py, 
+                        (is_mine ? 5 : 2),
+                        (is_mine ? C_RED : C_BLACK))
+end
+
+edges_img = Image.new(Window.width, Window.height)
+
+
+prev_turn_num = nil
+turn_num = end_turn
 Window.load_resources do
   Window.loop do
     Window.draw_box_fill(0, 0, Window.width, Window.height, [255, 255, 255])
 
-    if turn_num < 0
-      turn_num = end_turn
-    end
     if Input.key_push?(K_RIGHT)
       turn_num += 1 if turn_num < end_turn
     end
     if Input.key_push?(K_LEFT)
       turn_num -= 1 if turn_num > 0
     end
+    if Input.key_push?(K_A)
+      turn_num = 0
+    end
+    if Input.key_push?(K_Z)
+      turn_num = end_turn
+    end
 
-    edges = Hash.new(mapData.JS["edges"])
-    nodes = mapData.JS["nodes"]
-
-    mapData.JS["game_progress"][0..turn_num].each do |turn|
-      moves = `turn["move"]["moves"]`
-      moves.each do |move|
-        next unless move.JS["claim"]  # passの場合はスキップ
-        claim = move.JS["claim"]
-        id = claim.JS["punter"]
-        src = claim.JS["source"]
-        tgt = claim.JS["target"]
-        if src < tgt
-          edges[src.to_s][tgt.to_s] = id
-        else
-          edges[tgt.to_s][src.to_s] = id
+    if turn_num != prev_turn_num
+      edges = Hash.new(mapData.JS["edges"])
+      mapData.JS["game_progress"][0..turn_num].each do |turn|
+        moves = `turn["move"]["moves"]`
+        moves.each do |move|
+          next unless move.JS["claim"]  # passの場合はスキップ
+          claim = move.JS["claim"]
+          id = claim.JS["punter"]
+          src = claim.JS["source"]
+          tgt = claim.JS["target"]
+          if src < tgt
+            edges[src.to_s][tgt.to_s] = id
+          else
+            edges[tgt.to_s][src.to_s] = id
+          end
+        end
+      end
+      # 辺を描画
+      edges_img.box_fill(0, 0, Window.width, Window.height, [255, 255, 255])
+      edges.each do |src, tgts|
+        tgts.each do |tgt, owner|
+          x1 = `(nodes[src][0] - min_x) * scale` + MARGIN
+          y1 = `(nodes[src][1] - min_y) * scale` + MARGIN
+          x2 = `(nodes[tgt][0] - min_x) * scale` + MARGIN
+          y2 = `(nodes[tgt][1] - min_y) * scale` + MARGIN
+          edges_img.line(x1, y1, x2, y2, COLORS[owner.to_i])
         end
       end
     end
-
-    # 辺を描画
-    edges.each do |src, tgts|
-      tgts.each do |tgt, owner|
-        x1 = `(nodes[src][0] - min_x) * scale` + MARGIN
-        y1 = `(nodes[src][1] - min_y) * scale` + MARGIN
-        x2 = `(nodes[tgt][0] - min_x) * scale` + MARGIN
-        y2 = `(nodes[tgt][1] - min_y) * scale` + MARGIN
-        Window.draw_line(x1, y1, x2, y2, COLORS[owner.to_i])
-      end
-    end
+    Window.draw(0, 0, edges_img)
 
     # 点を描画
-    nodes.each do |node|
-      x, y, is_mine = `node[0]`, `node[1]`, `node[2]`
-
-      px = `(x - min_x) * scale` + MARGIN
-      py = `(y - min_y) * scale` + MARGIN
-
-      Window.draw_circle_fill(px, py, 
-                              (is_mine ? 5 : 2),
-                              (is_mine ? C_RED : C_BLACK))
-    end
+    Window.draw(0, 0, nodes_img)
 
     # 情報を描画
     player_id = mapData.JS["player_id"]
@@ -108,6 +121,8 @@ Window.load_resources do
       Window.draw_font(0, i*10, msg, INFO_FONT, color: COLORS[i-1])
       i+=1
     end
+
+    prev_turn_num = turn_num
   end
 end
 
