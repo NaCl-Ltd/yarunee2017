@@ -1,16 +1,15 @@
 # visualizer
 
-## 使用方法
+## How to use
 
-1. visualizer/app.rbを開いて、入力ファイル名(*.jsons)を書き換える
-1. gem i sinatra
+1. bundle install
 1. bundle exec ruby app.rb
-1. open http://localhost:4567
+1. Open http://localhost:4567/?playlog=data/play_logs/nari/game_9072_tube.jsons
 
-## 入力仕様
+## Input data
 
-.jsonsファイルは以下のような形式です。
+Spec of .jsons file:
 
-- 1行目：ゲーム開始時のJSONデータ ({"punter":1, ...)
-- 2行目以降：ゲームの各ターンのJSONデータ ({"move":, ...)
-- 最終行：ゲーム終了時のJSONデータ ({"stop":, ...)
+- First line: JSON of when the game was started (`{"punter":1, ...`)
+- Second line~: JSON of the each turrn (`{"move":, ...`)
+- Last line: JSON of when the game was end (`{"stop":, ...`)
